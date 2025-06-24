@@ -1,0 +1,136 @@
+{% extends "admin_base.html" %}
+{% block content %}
+    <h1 class="text-2xl font-semibold mb-6">Edit User</h1>
+
+    <form method="POST" action="/edit/user/{{ user.id }}" class="space-y-4 bg-white p-6 rounded shadow-md max-w-2xl">
+        <!-- Personal Information Section -->
+        <div class="border-b border-gray-200 pb-4 mb-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="first_name" class="block text-gray-700 font-medium">First Name</label>
+                    <input name="first_name" id="first_name" value="{{ user.first_name }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+
+                <div>
+                    <label for="lastname" class="block text-gray-700 font-medium">Last Name</label>
+                    <input name="lastname" id="lastname" value="{{ user.lastname }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+
+                <div>
+                    <label for="NID" class="block text-gray-700 font-medium">National ID</label>
+                    <input name="NID" id="NID" value="{{ user.NID }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+
+                <div>
+                    <label for="DOB" class="block text-gray-700 font-medium">Date of Birth</label>
+                    <input name="DOB" type="date" id="DOB" value="{{ user.DOB }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+
+                <div>
+                    <label for="gender" class="block text-gray-700 font-medium">Gender</label>
+                    <select name="gender" id="gender" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="" disabled {% if not user.gender %}selected{% endif %}>-- Select a Gender --</option>
+                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information Section -->
+        <div class="border-b border-gray-200 pb-4 mb-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Address Information</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label for="province" class="block text-gray-700 font-medium">Province</label>
+                    <select name="province" id="province" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="" disabled {% if not user.province %}selected{% endif %}>-- Select Province --</option>
+                        <option value="Kigali" {% if user.province == 'Kigali' %}selected{% endif %}>Kigali</option>
+                        <option value="Northern Province" {% if user.province == 'Northern Province' %}selected{% endif %}>Northern Province</option>
+                        <option value="Southern Province" {% if user.province == 'Southern Province' %}selected{% endif %}>Southern Province</option>
+                        <option value="Eastern Province" {% if user.province == 'Eastern Province' %}selected{% endif %}>Eastern Province</option>
+                        <option value="Western Province" {% if user.province == 'Western Province' %}selected{% endif %}>Western Province</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="district" class="block text-gray-700 font-medium">District</label>
+                    <input name="district" id="district" value="{{ user.district }}" placeholder="e.g., Gasabo, Nyarugenge, Kicukiro" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="sector" class="block text-gray-700 font-medium">Sector</label>
+                    <input name="sector" id="sector" value="{{ user.sector }}" placeholder="e.g., Kimisagara, Nyamirambo" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="cell" class="block text-gray-700 font-medium">Cell</label>
+                    <input name="cell" id="cell" value="{{ user.cell }}" placeholder="Cell name" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="village" class="block text-gray-700 font-medium">Village</label>
+                    <input name="village" id="village" value="{{ user.village }}" placeholder="Village name" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information Section -->
+        <div class="border-b border-gray-200 pb-4 mb-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Account Information</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="username" class="block text-gray-700 font-medium">Username</label>
+                    <input name="username" id="username" value="{{ user.username }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required {% if current_user.role!="admin" %}readonly{% endif %}>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-gray-700 font-medium">Email</label>
+                    <input name="email" type="email" id="email" value="{{ user.email }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required {% if current_user.role!="admin" %}readonly{% endif %}>
+                </div>
+
+                <div>
+                    <label for="role" class="block text-gray-700 font-medium">Role</label>
+                    {% if current_user.role == "admin" %}
+                        <select name="role" id="role" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="" disabled {% if not user.role %}selected{% endif %}>-- Select a Role --</option>
+                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                            <option value="staff" {% if user.role == 'staff' %}selected{% endif %}>Staff</option>
+                            <option value="seller" {% if user.role == 'seller' %}selected{% endif %}>Seller</option>
+                            <option value="customer" {% if user.role == 'customer' %}selected{% endif %}>Customer</option>
+                        </select>
+                    {% else %}
+                        <!-- Hidden input to ensure role is submitted -->
+                        <input type="text" name="role" value="{{ user.role }}" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex items-center space-x-4 pt-4">
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition duration-200">
+                Update User
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition duration-200">
+                Cancel
+            </a>
+        </div>
+    </form>
+
+    <script>
+        // Optional: Add dynamic district/sector loading based on province selection
+        document.getElementById('province').addEventListener('change', function() {
+            const province = this.value;
+            const districtSelect = document.getElementById('district');
+            
+            // You can implement dynamic loading of districts here
+            // For now, it's just a text input for flexibility
+            console.log('Province changed to:', province);
+        });
+    </script>
+{% endblock %}

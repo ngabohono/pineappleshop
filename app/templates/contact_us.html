@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="bg-gray-50 py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-green-700 mb-6">Contact Us</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      
+      <!-- Contact Info -->
+      <div>
+        <h2 class="text-xl font-semibold text-blue-600 mb-4">We’d Love to Hear From You</h2>
+        <p class="text-gray-700 mb-4">
+          Whether you have questions about our products, need help with an order, or just want to give feedback, feel free to reach out.
+        </p>
+        <div class="text-gray-700 space-y-3 mt-6">
+          <p><strong>📍 Address:</strong> Rwamagana Market, Rwanda</p>
+          <p><strong>📞 Phone:</strong> <a href="tel:+250787133704" class="text-blue-600 hover:underline">+250787133704</a></p>
+          <p><strong>📧 Email:</strong> <a href="mailto:info@pineapplefarm.rw" class="text-blue-600 hover:underline">info@pineapplefarm.rw</a></p>
+          <p><strong>⏰ Hours:</strong> Mon–Sat: 8AM – 6PM</p>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div>
+        <form action="/send-message" method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <div class="mb-4">
+            <label for="name" class="block text-gray-700 font-bold mb-2">Your Name</label>
+            <input type="text" name="name" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+          </div>
+          
+          <div class="mb-4">
+            <label for="email" class="block text-gray-700 font-bold mb-2">Your Email</label>
+            <input type="email" name="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+          </div>
+
+          <div class="mb-4">
+            <label for="message" class="block text-gray-700 font-bold mb-2">Message</label>
+            <textarea name="message" id="message" rows="5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              Send Message
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends "admin_base.html" %}
+{% block content %}
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Product</h1>
+            <p class="text-gray-600">Update product information and settings</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="bg-white shadow-lg rounded-lg p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Left Column - Basic Information -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Basic Information</h2>
+                    
+                    <!-- Product Name -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
+                        <input name="name" 
+                               id="name" 
+                               value="{{ product.name }}" 
+                               class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                               required
+                               placeholder="Enter product name">
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                        <select name="category_id" 
+                                id="category" 
+                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required>
+                            <option value="">-- Select a Category --</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id == product.category_id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Brief Description -->
+                    <div>
+                        <label for="brief" class="block text-sm font-medium text-gray-700 mb-2">Brief Description</label>
+                        <textarea name="brief" 
+                                  id="brief" 
+                                  class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                  rows="3"
+                                  placeholder="Short description for product cards...">{{ product.brief if product.brief else '' }}</textarea>
+                        <p class="text-sm text-gray-500 mt-1">Brief description shown on product cards (max 250 characters)</p>
+                    </div>
+
+                    <!-- Full Description -->
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Full Description</label>
+                        <textarea name="description" 
+                                  id="description" 
+                                  class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                  rows="5"
+                                  placeholder="Detailed product description...">{{ product.description if product.description else '' }}</textarea>
+                        <p class="text-sm text-gray-500 mt-1">Detailed description shown on product page</p>
+                    </div>
+                </div>
+
+                <!-- Right Column - Pricing & Inventory -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Pricing & Inventory</h2>
+                    
+                    <!-- Price -->
+                    <div>
+                        <label for="price" class="block text-sm font-medium text-gray-700 mb-2">Price (RF) *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-3 text-gray-500">RF</span>
+                            <input name="price" 
+                                   id="price" 
+                                   value="{{ product.price }}" 
+                                   type="number" 
+                                   step="0.01" 
+                                   min="0"
+                                   class="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                   required
+                                   placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <!-- Stock -->
+                    <div>
+                        <label for="stock" class="block text-sm font-medium text-gray-700 mb-2">Stock Quantity *</label>
+                        <input name="stock" 
+                               id="stock" 
+                               value="{{ product.stock }}" 
+                               type="number" 
+                               min="0"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                               required
+                               placeholder="0">
+                        <p class="text-sm text-gray-500 mt-1">Current stock level</p>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div>
+                        <label for="image" class="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+                        
+                        <!-- Current Image Preview -->
+                        {% if product.image %}
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">Current Image:</p>
+                            <div class="relative inline-block">
+                                <img src="{{ url_for('static', filename='images/' + product.image) }}" 
+                                     alt="{{ product.name }}" 
+                                     class="h-32 w-32 object-cover rounded-lg border border-gray-300">
+                                <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg text-center">
+                                    {{ product.image }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Image Upload Options -->
+                        <div class="space-y-3">
+                                                        
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">Image Filename (in static/images/):</label>
+                                <input name="image" 
+                                       id="image" 
+                                       value="{{ product.image if product.image else '' }}" 
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="example.jpg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slug (Optional) -->
+                   <!-- <div>
+                        <label for="slug" class="block text-sm font-medium text-gray-700 mb-2">URL Slug (Optional)</label>
+                        <input name="slug" 
+                               id="slug" 
+                               value="{{ product.slug if product.slug else '' }}" 
+                               class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="product-url-slug">
+                        <p class="text-sm text-gray-500 mt-1">Custom URL for this product (auto-generated if empty)</p>
+                    </div>-->
+                </div>
+            </div>
+
+            <!-- Product Statistics (Read-only) -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Product Statistics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">{{ product.views if product.views else 0 }}</div>
+                        <div class="text-sm text-blue-600">Total Views</div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-600">{{ "%.1f"|format(product.average_rating) }}</div>
+                        <div class="text-sm text-yellow-600">Average Rating</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">{{ product.review_count }}</div>
+                        <div class="text-sm text-green-600">Total Ratings</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button type="submit" 
+                                class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition duration-200 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Update Product
+                        </button>
+                        
+                        <a href="{{ url_for('main.index') }}" 
+                           class="bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-3 rounded-lg transition duration-200 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Back to Products
+                        </a>
+                    </div>
+                    
+                    <!-- Danger Zone -->
+                    <div>
+                        <button type="button" 
+                                onclick="confirmDelete()"
+                                class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-lg transition duration-200 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Delete Product
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-2">Delete Product</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        Are you sure you want to delete "{{ product.name }}"? 
+                        This action cannot be undone and will remove all associated ratings and data.
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button onclick="window.location.href='{{ url_for('main.delete_product', id=product.id) }}'" 
+                            class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 transition duration-150">
+                        Delete
+                    </button>
+                    <button onclick="closeDeleteModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 transition duration-150">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        // Auto-generate slug from name
+        document.getElementById('name').addEventListener('input', function() {
+            const nameInput = this.value;
+            const slugInput = document.getElementById('slug');
+            
+            if (!slugInput.value) {  // Only auto-generate if slug is empty
+                const slug = nameInput
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                slugInput.value = slug;
+            }
+        });
+
+        // Preview uploaded image
+        document.getElementById('image_file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // You can add image preview functionality here
+                    console.log('Image selected:', file.name);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Character counter for brief description
+        document.getElementById('brief').addEventListener('input', function() {
+            const maxLength = 250;
+            const currentLength = this.value.length;
+            
+            // Create or update character counter
+            let counter = document.getElementById('brief-counter');
+            if (!counter) {
+                counter = document.createElement('p');
+                counter.id = 'brief-counter';
+                counter.className = 'text-sm mt-1';
+                this.parentNode.appendChild(counter);
+            }
+            
+            counter.textContent = `${currentLength}/${maxLength} characters`;
+            counter.className = currentLength > maxLength ? 'text-sm mt-1 text-red-500' : 'text-sm mt-1 text-gray-500';
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+    </script>
+{% endblock %}

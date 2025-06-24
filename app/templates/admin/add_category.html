@@ -1,0 +1,39 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-3xl mx-auto px-4">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Add Category</h1>
+            <p class="text-gray-600">Add the category information below</p>
+        </div>
+
+    <form method="POST" enctype="multipart/form-data" action="/add-category" class="bg-white rounded-xl shadow-lg overflow-hidden">
+       <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
+                <h2 class="text-xl font-semibold text-white">Category Information</h2>
+            </div>
+
+            <!-- Form Body -->
+            <div class="p-8 space-y-6">
+        <div class="group">
+            <label for="name" class="block text-gray-700 font-medium">Name</label>
+            <input name="name" id="name" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+
+
+        <div class="group">
+            <label for="description" class="block text-gray-700 font-medium">Description</label>
+            <textarea name="description" id="description" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+        </div>
+
+        
+
+        <div class="flex items-center space-x-4">
+            <button type="submit" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105">Save</button>
+            <a href="{{ url_for('main.index') }}" class="text-blue-600 hover:underline">Back</a>
+        </div>
+        </div>
+        </div>
+        
+    </form>
+{% endblock %}

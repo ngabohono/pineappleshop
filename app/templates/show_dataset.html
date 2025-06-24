@@ -1,0 +1,31 @@
+<h2>Products Dataset</h2>
+<table border="1">
+    <tr>
+        {% for key in products[0].keys() %}
+        <th>{{ key }}</th>
+        {% endfor %}
+    </tr>
+    {% for row in products %}
+    <tr>
+        {% for value in row.values() %}
+        <td>{{ value }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Search Logs Dataset</h2>
+<table border="1">
+    <tr>
+        {% for key in search_logs[0].keys() %}
+        <th>{{ key }}</th>
+        {% endfor %}
+    </tr>
+    {% for row in search_logs %}
+    <tr>
+        {% for value in row.values() %}
+        <td>{{ value }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>

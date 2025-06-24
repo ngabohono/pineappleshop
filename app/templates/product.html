@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="lg:grid lg:grid-cols-2 lg:gap-8">
+        <div class="mb-8 lg:mb-0">
+            <img src="{{ url_for('static', filename='images/' + product.image) if product.image else 'https://via.placeholder.com/600' }}" alt="{{ product.name }}" class="w-full rounded-lg shadow-lg">
+        </div>
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-900">{{ product.name }}</h1>
+            <p class="mt-3 text-xl text-gray-500">RF{{ "%.2f"|format(product.price) }}</p>
+            <p class="mt-6 text-gray-700">{{ product.brief }}</p>
+            
+            <!-- Display Current Rating -->
+            {% if product.average_rating > 0 %}
+            <div class="flex items-center mt-4">
+                <div class="flex text-yellow-400">
+                    {% for i in range(1, 6) %}
+                        {% if i <= product.average_rating %}
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        {% else %}
+                            <svg class="w-5 h-5 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span class="ml-2 text-sm text-gray-600">{{ "%.1f"|format(product.average_rating) }} ({{ product.review_count }} ratings)</span>
+            </div>
+            {% endif %}
+            
+            <div class="mt-8">
+                <div class="flex items-center">
+                    <span class="mr-4 text-gray-700">Quantity:</span>
+                    <input type="number" min="1" max="10" value="1" class="w-20 px-3 py-2 border border-gray-300 rounded">
+                </div>
+                <a href="{{ url_for('main.add_to_cart', product_id=product.id) }}">
+                <button class="mt-6 w-full bg-blue-500 text-white py-3 px-4 rounded hover:bg-blue-600">
+                    Add to Cart
+                </button></a>
+            </div>
+
+            <!-- Get user's existing rating -->
+            {% if current_user.is_authenticated %}
+                {% set user_rating = product.ratings|selectattr('user_id', 'equalto', current_user.id)|first %}
+            {% else %}
+                {% set user_rating = none %}
+            {% endif %}
+
+            {% if current_user.is_authenticated %}
+            <div class="mt-8 border-t pt-6">
+                <form method="POST" action="{{ url_for('main.rate_product', product_id=product.id) }}" class="space-y-4">
+                    <!-- Interactive Star Rating -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+                        <div class="flex items-center space-x-1" id="star-rating">
+                            {% for i in range(1, 6) %}
+                                <input type="radio" name="stars" value="{{ i }}" id="star-{{ i }}" 
+                                       class="hidden star-input"
+                                       {% if user_rating and user_rating.stars == i %}checked{% endif %}>
+                                <label for="star-{{ i }}" 
+                                       class="cursor-pointer text-3xl transition-colors duration-200 star-label
+                                              {% if user_rating and i <= user_rating.stars %}text-yellow-400{% else %}text-gray-300 hover:text-yellow-400{% endif %}">
+                                    ★
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1" id="rating-text">
+                            {% if user_rating %}
+                                You rated this {{ user_rating.stars }} star{{ 's' if user_rating.stars > 1 }}
+                            {% else %}
+                                Click on a star to rate
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <!-- Comment Section - Hidden by default, shown when rating changes -->
+                    <div id="comment-section" class="{% if not user_rating %}hidden{% endif %} transition-all duration-300 ease-in-out">
+                        <label for="comment-textarea" class="block text-sm font-medium text-gray-700 mb-2">
+                            Your Review (Optional)
+                        </label>
+                        <textarea name="comment" id="comment-textarea" rows="4" 
+                                  placeholder="Share your experience with this product..."
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">{% if user_rating %}{{ user_rating.comment }}{% endif %}</textarea>
+                        <p class="text-sm text-gray-500 mt-1">Help other customers by sharing your thoughts</p>
+                    </div>
+                    
+                    <!-- Submit Button - Hidden by default, shown when rating changes -->
+                    <div class="{% if not user_rating %}hidden{% endif %} flex items-center justify-between transition-all duration-300 ease-in-out" id="submit-section">
+                        <button type="submit" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-2 rounded-md transition-colors duration-200 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span id="submit-text">{% if user_rating %}Update Rating{% else %}Submit Rating{% endif %}</span>
+                        </button>
+                        
+                        {% if user_rating %}
+                        <p class="text-sm text-gray-500" id="last-updated">
+                            Previously rated
+                        </p>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="mt-8 border-t pt-6">
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Want to rate this product?</h3>
+                    <p class="text-gray-600 mb-4">Sign in to share your experience</p>
+                    <a href="{{ url_for('auth.login') }}" 
+                       class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors duration-200">
+                        Sign In to Rate
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-2">Product Description</h2>
+        <div class="bg-gray-50 mb-2 p-4 rounded-lg shadow-sm text-gray-700 leading-relaxed">
+            {{ product.description }}
+        </div>
+
+        {% if current_user.role == 'admin' %}            
+            <a href="{{ url_for('main.edit_product', id=product.id) }}" 
+            class="bg-cyan-300 hover:bg-cyan-500 p-1 mr-1 text-blue-600 hover:underline rounded text-sm">
+            Edit
+            </a> | 
+            <a href="{{ url_for('main.delete_product', id=product.id) }}" onclick="return confirm('Delete this product?')" class="rounded p-1 text-sm bg-red-500 hover:bg-red-800 text-white hover:underline">
+                Delete
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- All Ratings Section -->
+    {% if product.ratings %}
+    <div class="mt-8 border-t pt-6">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Customer Reviews</h3>
+        <div class="space-y-4">
+            {% for rating in product.ratings|reverse %}
+                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex text-yellow-400">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= rating.stars %}
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="font-medium text-gray-900">{{ rating.user.first_name }} {{ rating.user.lastname[0] }}.</span>
+                        </div>
+                    </div>
+                    {% if rating.comment %}
+                        <p class="text-gray-700">{{ rating.comment }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if recommendations %}
+        <h4 class="mt-8 text-lg font-semibold">You may also like</h4>
+    {% endif %}
+    <div class="grid grid-cols-4 md:grid-cols-6 gap-2 mt-4">
+        {% for rec in recommendations %}
+            <div class="bg-white rounded-lg shadow overflow-hidden p-2">
+                <a href="{{ url_for('main.product_details', product_id=rec.slug if rec.slug is not none else rec.id) }}" class="block">
+                    <img src="{{ url_for('static', filename='images/' + rec.image) }}" alt="{{ rec.name }}">
+                    <p class="mt-2 text-sm">{{ rec.name }}</p>                    
+                </a>
+
+                <div class="mt-2 flex flex-col items-start space-y-2">
+                    <span class="text-sm font-bold text-gray-900">
+                        RF{{ "%.2f"|format(rec.price) }}
+                    </span>
+
+                    {% if rec.stock > 0 %}
+                        <a href="{{ url_for('main.add_to_cart', product_id=rec.id) }}"
+                        class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                        Add to Cart
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-1 bg-gray-300 text-red-700 text-sm rounded cursor-not-allowed">
+                            Out of Stock
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const starInputs = document.querySelectorAll('.star-input');
+    const starLabels = document.querySelectorAll('.star-label');
+    const ratingText = document.getElementById('rating-text');
+    const commentSection = document.getElementById('comment-section');
+    const submitSection = document.getElementById('submit-section');
+    const submitText = document.getElementById('submit-text');
+    const lastUpdated = document.getElementById('last-updated');
+    
+    // Store initial rating value
+    const initialRating = document.querySelector('.star-input:checked')?.value || null;
+    let currentRating = initialRating;
+    let hasUserRating = {{ 'true' if user_rating else 'false' }};
+    
+    const ratingTexts = {
+        1: 'Poor - 1 star',
+        2: 'Fair - 2 stars', 
+        3: 'Good - 3 stars',
+        4: 'Very Good - 4 stars',
+        5: 'Excellent - 5 stars'
+    };
+    
+    // Function to show/hide comment and button sections
+    function toggleFormSections(show) {
+        if (show) {
+            commentSection.classList.remove('hidden');
+            submitSection.classList.remove('hidden');
+            // Add smooth animation
+            setTimeout(() => {
+                commentSection.style.opacity = '1';
+                submitSection.style.opacity = '1';
+            }, 10);
+        } else {
+            commentSection.style.opacity = '0';
+            submitSection.style.opacity = '0';
+            setTimeout(() => {
+                commentSection.classList.add('hidden');
+                submitSection.classList.add('hidden');
+            }, 300);
+        }
+    }
+    
+    // Function to update submit button text
+    function updateSubmitText(isUpdate) {
+        submitText.textContent = isUpdate ? 'Update Rating' : 'Submit Rating';
+        
+        // Hide "Last updated" text for new ratings
+        if (lastUpdated) {
+            lastUpdated.style.display = isUpdate ? 'block' : 'none';
+        }
+    }
+    
+    // Add hover effects and click handlers
+    starLabels.forEach((label, index) => {
+        const starValue = index + 1;
+        
+        // Hover effect
+        label.addEventListener('mouseenter', function() {
+            updateStarDisplay(starValue, true);
+            ratingText.textContent = ratingTexts[starValue];
+        });
+        
+        // Click handler
+        label.addEventListener('click', function() {
+            starInputs[index].checked = true;
+            currentRating = starValue;
+            updateStarDisplay(starValue, false);
+            ratingText.textContent = `You selected: ${ratingTexts[starValue]}`;
+            
+            // Check if rating has changed from initial value
+            const hasChanged = currentRating !== initialRating;
+            
+            // Show comment and button sections if rating changed or no initial rating
+            if (hasChanged || !hasUserRating) {
+                toggleFormSections(true);
+                updateSubmitText(hasUserRating && hasChanged);
+            }
+        });
+    });
+    
+    // Reset on mouse leave
+    document.getElementById('star-rating').addEventListener('mouseleave', function() {
+        const checkedStar = document.querySelector('.star-input:checked');
+        if (checkedStar) {
+            const checkedValue = parseInt(checkedStar.value);
+            updateStarDisplay(checkedValue, false);
+            
+            if (currentRating === initialRating && hasUserRating) {
+                ratingText.textContent = `You rated this: ${ratingTexts[checkedValue]}`;
+            } else {
+                ratingText.textContent = `You selected: ${ratingTexts[checkedValue]}`;
+            }
+        } else {
+            updateStarDisplay(0, false);
+            ratingText.textContent = 'Click on a star to rate';
+        }
+    });
+    
+    function updateStarDisplay(rating, isHover) {
+        starLabels.forEach((label, index) => {
+            if (index < rating) {
+                label.classList.remove('text-gray-300');
+                label.classList.add('text-yellow-400');
+                if (isHover) {
+                    label.classList.add('scale-110');
+                }
+            } else {
+                label.classList.remove('text-yellow-400', 'scale-110');
+                label.classList.add('text-gray-300');
+            }
+        });
+    }
+    
+    // Initialize form sections visibility based on existing rating
+    if (!hasUserRating) {
+        toggleFormSections(false);
+    }
+});
+</script>
+
+<style>
+.star-label {
+    transition: all 0.2s ease;
+}
+
+.star-label:hover {
+    transform: scale(1.1);
+}
+
+.scale-110 {
+    transform: scale(1.1);
+}
+
+/* Smooth transitions for showing/hiding sections */
+#comment-section, #submit-section {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#comment-section.hidden, #submit-section.hidden {
+    opacity: 0;
+}
+</style>
+
+{% endblock %}

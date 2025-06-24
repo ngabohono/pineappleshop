@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Commerce Store{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Add Bootstrap CSS and JS for carousel functionality -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css" integrity="sha512-rt/SrQ4UNIaGfDyEXZtNcyWvQeOq0QLygHluFQcSjaGB04IxWhal71tKuzP6K8eYXYB6vJV4pHkXcmFGGQ1/0w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" integrity="sha512-pumBsjNRGGqkPzKHndZMaAG+bir374sORyzM3uulLV14lN5LyykqNk8eEeUlUkB3U0M4FApyaHraT65ihJhDpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js" integrity="sha512-igl8WEUuas9k5dtnhKqyyld6TzzRjvMqLC79jkgT3z02FvJyHAuUtyemm2Pg0I/D/KXFZ/epDp+PfkQGkC1ZVQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="{{ url_for('main.home') }}" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg"><img src="{{ url_for('static', filename='images/logo.jpeg') }}" class="h-10 w-auto object-contain"></span>
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('main.cart') }}" class="py-2 px-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span class="ml-1">Cart</span>
+                        {% if cart_quantity is defined and cart_quantity > 0 %}
+                            <span class="-top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {{ cart_quantity }}
+                            </span>
+                        {% else %}
+                            <span class="-top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                0
+                            </span>
+                        {% endif %}
+                    </a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('main.dashboard') }}" class="py-2 px-2">Dashboard</a>
+                        <a href="{{ url_for('auth.logout') }}" class="py-2 px-2">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="py-2 px-2">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="py-2 px-2 bg-blue-500 text-white rounded hover:bg-blue-600">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+<section class="hero py-6">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col lg:flex-row">
+            <!-- Categories Sidebar -->
+            <div class="w-full lg:w-1/4 mb-6 lg:mb-0">
+                <div class="bg-white shadow rounded overflow-hidden">
+                    <div class="hero__categories__all bg-blue-500 text-white p-4 flex items-center justify-between cursor-pointer" id="categoriesToggle">
+                        <div class="flex items-center">
+                            <i class="fa fa-bars mr-2"></i>
+                            <span class="font-medium">All Categories</span>
+                        </div>
+                        <i class="fa fa-angle-down transition-transform duration-300" id="categoryArrow"></i>
+                    </div>
+
+                    <ul id="categoriesMenu" class="hidden bg-white w-full z-50 shadow-md overflow-y-auto max-h-80 border-t">
+                        <!-- <li><a href="/shop/category/pineapple-fresh" class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100">Fresh Pineapples</a></li>
+                        <li><a href="/shop/category/pineapple-juice" class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100">Pineapple Juice</a></li>
+                        <li><a href="/shop/category/pineapple-snacks" class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100">Dried Pineapple Snacks</a></li>
+                        <li><a href="/shop/category/organic-fertilizer" class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100">Organic Fertilizer</a></li>
+                        -->
+                        {% for category in categories %}
+                            <li>
+                                <a href="{{ url_for('main.searchcategory', category_name=category.slug) }}" 
+                                class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="px-4 py-2 text-gray-500">No categories available</li>
+                        {% endfor %}
+
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Hero Content -->
+            <div class="w-full lg:w-3/4 lg:pl-6">
+                <!-- Search Bar -->
+                <!-- Enhanced Search Bar with Live Search -->
+<div class="bg-white shadow rounded p-2 mb-2 flex flex-col md:flex-row items-center">
+    <div class="w-full md:w-2/3 mb-4 md:mb-0">
+        <form id="search-form" action="{{ url_for('main.search') }}" method="GET" class="flex">
+            <div class="relative w-full">
+                <input type="text" 
+                       id="search-box" 
+                       name="q" 
+                       placeholder="Search products..." 
+                       value="{{ request.args.get('q', '') }}"
+                       class="w-full border border-gray-300 rounded-l px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                       autocomplete="off">
+                
+                <!-- Live Search Results Dropdown -->
+                <div id="search-dropdown" class="absolute left-0 right-0 top-full mt-1 bg-white shadow-xl rounded-lg z-50 hidden border border-gray-200 max-h-96 overflow-y-auto">
+                    <div id="search-loading" class="hidden p-4 text-center text-gray-500">
+                        <i class="fa fa-spinner fa-spin mr-2"></i>Searching...
+                    </div>
+                    <div id="search-results-list"></div>
+                </div>
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-r transition duration-300">
+                <i class="fa fa-search"></i>
+            </button>
+        </form>
+    </div>
+    <div class="hidden md:flex md:w-1/3 md:justify-end items-center">
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                <i class="fa fa-phone text-blue-600"></i>
+            </div>
+            <div>
+                <h5 class="font-medium">+250787133704</h5>
+                <span class="text-sm text-gray-500">Support 24/7</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBox = document.getElementById('search-box');
+    const searchDropdown = document.getElementById('search-dropdown');
+    const searchLoading = document.getElementById('search-loading');
+    const searchResultsList = document.getElementById('search-results-list');
+    let searchTimeout;
+    let currentQuery = '';
+
+    // Live search functionality
+    searchBox.addEventListener('input', function() {
+        const query = this.value.trim();
+        currentQuery = query;
+
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+
+        if (query.length < 2) {
+            hideSearchDropdown();
+            return;
+        }
+
+        // Show loading indicator
+        showLoading();
+
+        // Debounce search requests (wait 300ms after user stops typing)
+        searchTimeout = setTimeout(() => {
+            performLiveSearch(query);
+        }, 300);
+    });
+
+    // Handle focus - show dropdown if there's content
+    searchBox.addEventListener('focus', function() {
+        if (searchResultsList.innerHTML && currentQuery.length >= 2) {
+            showSearchDropdown();
+        }
+    });
+
+    // Handle blur - hide dropdown after delay to allow clicking
+    searchBox.addEventListener('blur', function() {
+        setTimeout(() => {
+            hideSearchDropdown();
+        }, 200);
+    });
+
+    // Handle keyboard navigation
+    searchBox.addEventListener('keydown', function(e) {
+        const items = searchDropdown.querySelectorAll('.search-result-item');
+        const currentSelected = searchDropdown.querySelector('.search-result-item.selected');
+        let selectedIndex = -1;
+
+        if (currentSelected) {
+            selectedIndex = Array.from(items).indexOf(currentSelected);
+        }
+
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items, selectedIndex);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items, selectedIndex);
+                break;
+            case 'Enter':
+                if (currentSelected) {
+                    e.preventDefault();
+                    currentSelected.click();
+                }
+                break;
+            case 'Escape':
+                hideSearchDropdown();
+                break;
+        }
+    });
+
+    function performLiveSearch(query) {
+        // Make AJAX request to search endpoint
+        fetch(`/live-search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                displaySearchResults(data.results, query);
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                hideLoading();
+                displaySearchResults([], query);
+            });
+    }
+
+    function displaySearchResults(results, query) {
+        if (results.length === 0) {
+            searchResultsList.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    <i class="fa fa-search mr-2"></i>
+                    No products found for "${query}"
+                </div>
+            `;
+        } else {
+            searchResultsList.innerHTML = results.map(product => `
+                <div class="search-result-item p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer flex items-center" 
+                     onclick="selectProduct('${product.slug || product.id}')">
+                    <img src="/static/images/${product.image || 'inanasi.jpg'}" 
+                         alt="${product.name}" 
+                         class="w-12 h-12 object-cover rounded mr-3">
+                    <div class="flex-1">
+                        <h4 class="font-medium text-gray-900">${product.name}</h4>
+                        <p class="text-sm text-gray-600">RF${parseFloat(product.price).toFixed(2)}</p>
+                        ${product.average_rating > 0 ? `
+                            <div class="flex items-center text-xs text-yellow-600">
+                                ${'★'.repeat(Math.floor(product.average_rating))}
+                                <span class="ml-1">(${product.review_count})</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="text-blue-500">
+                        <i class="fa fa-arrow-right text-sm"></i>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add "View all results" option
+            if (results.length >= 5) {
+                searchResultsList.innerHTML += `
+                    <div class="search-result-item p-3 hover:bg-blue-50 cursor-pointer text-center border-t-2 border-blue-100" 
+                         onclick="viewAllResults('${query}')">
+                        <span class="text-blue-600 font-medium">
+                            <i class="fa fa-search mr-2"></i>
+                            View all results for "${query}"
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        showSearchDropdown();
+    }
+
+    function updateSelection(items, selectedIndex) {
+        // Remove previous selection
+        items.forEach(item => item.classList.remove('selected', 'bg-blue-50'));
+
+        // Add selection to current item
+        if (selectedIndex >= 0 && selectedIndex < items.length) {
+            items[selectedIndex].classList.add('selected', 'bg-blue-50');
+        }
+    }
+
+    function showSearchDropdown() {
+        searchDropdown.classList.remove('hidden');
+    }
+
+    function hideSearchDropdown() {
+        searchDropdown.classList.add('hidden');
+    }
+
+    function showLoading() {
+        searchLoading.classList.remove('hidden');
+        searchResultsList.innerHTML = '';
+        showSearchDropdown();
+    }
+
+    function hideLoading() {
+        searchLoading.classList.add('hidden');
+    }
+
+    // Global functions for onclick handlers
+    window.selectProduct = function(productId) {
+        window.location.href = `/product/${productId}`;
+    };
+
+    window.viewAllResults = function(query) {
+        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+    };
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchBox.contains(e.target) && !searchDropdown.contains(e.target)) {
+            hideSearchDropdown();
+        }
+    });
+});
+</script>
+
+<style>
+.search-result-item {
+    transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+    transform: translateX(2px);
+}
+
+.search-result-item.selected {
+    background-color: #eff6ff !important;
+}
+
+#search-dropdown {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+                <!-- Carousel -->
+                 {% if request.path == '/' or request.path == '/home' %}
+                <div id="heroCarousel" class="carousel slide rounded overflow-hidden shadow-lg" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                        <li data-target="#heroCarousel" data-slide-to="0" class="active"></li>
+                        <li data-target="#heroCarousel" data-slide-to="1"></li>
+                        <li data-target="#heroCarousel" data-slide-to="2"></li>
+                    </ol>
+
+                    <div class="carousel-inner">
+                        <!-- Slide 1 -->
+                        <div class="carousel-item active relative">
+                            <a href="/shop/category/pineapple-fresh" class="block">
+                                <div class="bg-gradient-to-r from-blue-600 to-blue-400 h-80 relative">
+                                    <div class="absolute inset-0 bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/slider1.jpg') }}');"></div>
+                                    <div class="absolute top-1/4 left-10 max-w-md text-white p-6">
+                                        <span class="inline-block bg-blue-500 px-3 py-1 rounded text-sm font-medium mb-3">FRESH</span>
+                                        <h2 class="text-3xl font-bold mb-2">Sweet Pineapples <br>From Our Farms</h2>
+                                        <p class="mb-4">Harvested Weekly & Delivered to You</p>
+                                        <span class="inline-block bg-white text-blue-600 px-6 py-2 rounded font-medium transition duration-300">SHOP NOW</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Slide 2 -->
+                        <div class="carousel-item relative">
+                            <a href="/shop/category/pineapple-juice" class="block">
+                                <div class="bg-gradient-to-r from-pink-600 to-pink-400 h-80 relative">
+                                    <div class="absolute inset-0 bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/slider2.jpg') }}');"></div>
+                                    <div class="absolute top-1/4 left-10 max-w-md text-white p-6">
+                                        <span class="inline-block bg-blue-500 px-3 py-1 rounded text-sm font-medium mb-3">JUICES</span>
+                                        <h2 class="text-3xl font-bold mb-2">Pure Pineapple Juice <br>No Sugar Added</h2>
+                                        <p class="mb-4">Perfect for Diabetics & Refreshing Anytime</p>
+                                        <span class="inline-block bg-white text-blue-600 px-6 py-2 rounded font-medium transition duration-300">ORDER NOW</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Slide 3 -->
+                        <div class="carousel-item relative">
+                            <a href="/shop/category/pineapple-snacks" class="block">
+                                <div class="bg-gradient-to-r from-green-700 to-green-500 h-80 relative">
+                                    <div class="absolute inset-0 bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/slider3.jpg') }}');"></div>
+                                    <div class="absolute top-1/4 left-10 max-w-md text-white p-6">
+                                        <span class="inline-block bg-blue-500 px-3 py-1 rounded text-sm font-medium mb-3">SNACKS</span>
+                                        <h2 class="text-3xl font-bold mb-2">Healthy Pineapple Snacks</h2>
+                                        <p class="mb-4">Great for Kids & Adults on the Go</p>
+                                        <span class="inline-block bg-white text-blue-600 px-6 py-2 rounded font-medium transition duration-300">TRY TODAY</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <a class="carousel-control-prev" href="#heroCarousel" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#heroCarousel" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+    <!-- Script with proper initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Categories toggle functionality
+            const toggleBtn = document.getElementById('categoriesToggle');
+            const menu = document.getElementById('categoriesMenu');
+            const arrow = document.getElementById('categoryArrow');
+            
+            if(toggleBtn && menu && arrow) {
+                toggleBtn.addEventListener('click', function() {
+                    menu.classList.toggle('hidden');
+                    arrow.classList.toggle('transform');
+                    arrow.classList.toggle('rotate-180');
+                });
+            }
+            
+            // Initialize Bootstrap carousel with error handling
+            try {
+                $('#heroCarousel').carousel({
+                    interval: 5000, // Changes slides every 5 seconds
+                    ride: 'carousel', // Start cycling automatically
+                    wrap: true, // Cycle continuously
+                    keyboard: true // React to keyboard events
+                });
+                
+                console.log('Carousel initialized successfully');
+            } catch (error) {
+                console.error('Error initializing carousel:', error);
+                
+                // Add a fallback initialization method using pure JavaScript
+                const carousel = document.getElementById('heroCarousel');
+                if (carousel) {
+                    const items = carousel.querySelectorAll('.carousel-item');
+                    let currentIndex = 0;
+                    
+                    // Find the active item index
+                    items.forEach((item, index) => {
+                        if (item.classList.contains('active')) {
+                            currentIndex = index;
+                        }
+                    });
+                    
+                    // Manual carousel function
+                    const showSlide = (index) => {
+                        // Remove active class from all items
+                        items.forEach(item => item.classList.remove('active'));
+                        
+                        // Add active class to current item
+                        if (index >= items.length) index = 0;
+                        if (index < 0) index = items.length - 1;
+                        
+                        items[index].classList.add('active');
+                        currentIndex = index;
+                    };
+                    
+                    // Set up automatic sliding
+                    setInterval(() => {
+                        showSlide(currentIndex + 1);
+                    }, 5000);
+                    
+                    // Set up manual controls
+                    const prevButton = carousel.querySelector('.carousel-control-prev');
+                    const nextButton = carousel.querySelector('.carousel-control-next');
+                    
+                    if (prevButton) {
+                        prevButton.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            showSlide(currentIndex - 1);
+                        });
+                    }
+                    
+                    if (nextButton) {
+                        nextButton.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            showSlide(currentIndex + 1);
+                        });
+                    }
+                }
+            }
+            
+            // Search functionality
+            const searchBox = document.getElementById('search-box');
+            const searchResults = document.getElementById('search-results');
+            
+            if(searchBox && searchResults) {
+                searchBox.addEventListener('focus', function() {
+                    if(searchBox.value.length > 0) {
+                        searchResults.classList.remove('hidden');
+                    }
+                });
+                
+                searchBox.addEventListener('blur', function() {
+                    // Small delay to allow clicking on results
+                    setTimeout(() => {
+                        searchResults.classList.add('hidden');
+                    }, 200);
+                });
+                
+                searchBox.addEventListener('input', function() {
+                    if(searchBox.value.length > 0) {
+                        searchResults.classList.remove('hidden');
+                        // Here you would typically fetch and display search results
+                    } else {
+                        searchResults.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+
+    <div class="container mx-auto py-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mb-4 p-4 bg-{{ 'green' if category == 'success' else 'red' }}-100 border border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 rounded">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="bg-gray-800 mt-10 text-white">
+        <div class="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-xl font-bold mb-2">Contact</h3>
+                <ul>
+                    <li>Address: Rwamagana</li>
+                    <li>Phone: +250787133704</li>
+                    <li>Email: sales@pinaple.com</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold mb-2">Useful Links</h3>
+                <ul class="space-y-1">
+                    <li><a href="/about-us" class="hover:underline">About Us</a></li>
+                    <li><a href="/delivery-information" class="hover:underline">Delivery Info</a></li>
+                    <li><a href="/privacy-policy" class="hover:underline">Privacy Policy</a></li>
+                    <li><a href="/who-we-are" class="hover:underline">Who We Are</a></li>
+                    <li><a href="/our-services" class="hover:underline">Our Services</a></li>
+                    <li><a href="/contact-us" class="hover:underline">Contact</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold mb-2">Newsletter</h3>
+                <p class="mb-2">Get E-mail updates about our latest shop and special offers.</p>
+                <form class="flex space-x-2" action="{{ url_for('main.subscriptions') }}" method="post">
+                    <input type="email" name="email" placeholder="Enter your email" required
+                        class="w-full px-3 py-2 border rounded-md">
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Subscribe
+                    </button>
+                </form>
+
+                <div class="mt-4 flex space-x-4">
+                    <a href="https://wa.me/250787133704" target="_blank" class="text-green-600 text-xl hover:text-green-800"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t mt-8 pt-4 text-center text-sm text-gray-500">
+            &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
