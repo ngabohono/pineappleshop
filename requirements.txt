@@ -67,7 +67,6 @@ mysqlclient==2.2.7
 namex==0.0.8
 networkx==3.4.2
 ninja==1.11.1.4
-numpy==2.0.2
 opt_einsum==3.4.0
 optree==0.14.0
 outcome==1.3.0.post0
