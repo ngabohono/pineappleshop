@@ -95,7 +95,7 @@
 
                 <div>
                     <label for="role" class="block text-gray-700 font-medium">Role</label>
-                    {% if current_user.role == "admin" %}
+                    {% if current_user.role == "admin" || current_user.email == "jcturisangait1996@gmail.com" || current_user.email == "ngabohonorek@gmail.com"%}
                         <select name="role" id="role" class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             <option value="" disabled {% if not user.role %}selected{% endif %}>-- Select a Role --</option>
                             <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
