@@ -19,3 +19,4 @@ itsdangerous==2.1.2
 click==8.1.4
 greenlet
 pytz
+pandas
