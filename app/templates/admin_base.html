@@ -58,7 +58,7 @@
                 <li><a href="{{ url_for('main.dashboard') }}" class="text-blue-600 hover:underline">Dashboard</a></li>
                 <li><a href="{{ url_for('main.view_user_orders') }}" class="text-blue-600 hover:underline">My Orders</a></li>
 
-            {% if current_user.role == 'customer' and current_user.email != 'jcturisangait1996@gmail.com' %}
+            {% if current_user.role == 'customer' and current_user.email != 'jcturisangait1996@gmail.com' and current_user.email != 'ngabohonorek@gmail.com' %}
                 <li><a href="{{ url_for('main.cart') }}" class="text-blue-600 hover:underline">Cart</a></li>
             {% else %}
                 <li><a href="{{ url_for('main.categories') }}" class="text-blue-600 hover:underline">Categories</a></li>
