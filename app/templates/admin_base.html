@@ -67,7 +67,7 @@
             {% endif %}
 
             
-            {% if current_user.role == 'admin' %}
+            {% if current_user.role == 'admin' and current_user.email == 'jcturisangait1996@gmail.com' and current_user.email == 'ngabohonorek@gmail.com' %}
             <li><a href="{{ url_for('main.users') }}" class="text-blue-600 hover:underline">Users</a></li>
             <li><a href="{{ url_for('main.categories') }}" class="text-blue-600 hover:underline">Categories</a></li>
             {% endif %}
