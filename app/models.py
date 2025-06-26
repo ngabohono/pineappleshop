@@ -1,10 +1,8 @@
 from app import db  # Import db directly from app
-
 from flask_login import UserMixin
 from datetime import datetime
 import pytz
 from datetime import date
-
 
 kigali_tz = pytz.timezone("Africa/Kigali")
 
@@ -23,34 +21,20 @@ class User(db.Model, UserMixin):
     cart_items = db.relationship('CartItem', backref='user', lazy=True)
     orders = db.relationship('Order', backref='user', lazy=True)
     
-    # NEW ADDRESS COLUMNS - Add these lines
+    # ADDRESS COLUMNS
     province = db.Column(db.String(50), nullable=True)
     district = db.Column(db.String(50), nullable=True)
     sector = db.Column(db.String(50), nullable=True)
     cell = db.Column(db.String(50), nullable=True)
     village = db.Column(db.String(50), nullable=True)
     
+    # Note: products relationship will be created by backref in Product model
+    
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
 
-    # Required for Flask-Login
     def get_id(self):
-        return str(self.id)  # Convert to string as Flask-Login expects string IDs
-    
-
-
-# class Product(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(100), nullable=False)
-#     slug = db.Column(db.String(200), nullable=True)
-#     price = db.Column(db.Float, nullable=False)
-#     description = db.Column(db.Text, nullable=True)
-#     brief = db.Column(db.String(250), nullable=True)
-#     image = db.Column(db.String(100), nullable=True)
-#     stock = db.Column(db.Integer, default=0)
-#     views = db.Column(db.Integer, default=0) 
-#     category_id = db.Column(db.Integer, db.ForeignKey('category.id', name='fk_product_category'), nullable=True)
-#     ratings = db.relationship('Rating', back_populates='product', lazy='dynamic')
+        return str(self.id)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -63,12 +47,17 @@ class Product(db.Model):
     stock = db.Column(db.Integer, default=0)
     views = db.Column(db.Integer, default=0) 
     category_id = db.Column(db.Integer, db.ForeignKey('category.id', name='fk_product_category'), nullable=True)
+    
+    # USER OWNERSHIP - ADD THESE LINES
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_product_user'), nullable=True)
+    user = db.relationship('User', backref='products')
+    
     ratings = db.relationship('Rating', back_populates='product', lazy='dynamic', cascade='all, delete-orphan')
 
     @property
     def average_rating(self):
         """Calculate average rating for this product"""
-        ratings_list = list(self.ratings)  # Convert dynamic query to list
+        ratings_list = list(self.ratings)
         if not ratings_list:
             return 0
         total_rating = sum(rating.stars for rating in ratings_list)
@@ -77,7 +66,7 @@ class Product(db.Model):
     @property
     def review_count(self):
         """Get total number of ratings for this product"""
-        return self.ratings.count()  # Use count() for dynamic relationship
+        return self.ratings.count()
     
     @property
     def rating_distribution(self):
@@ -92,7 +81,6 @@ class Product(db.Model):
     def has_ratings(self):
         """Check if product has any ratings"""
         return self.ratings.count() > 0
-
     
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -100,8 +88,6 @@ class Category(db.Model):
     slug = db.Column(db.String(200), nullable=True)
     description = db.Column(db.Text, nullable=True)
     products = db.relationship('Product', backref='category', lazy=True)
-    
-
 
 class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -109,8 +95,6 @@ class CartItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     quantity = db.Column(db.Integer, default=1)
     product = db.relationship('Product', backref='cart_items')
-    
-    
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -127,7 +111,6 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    
     product = db.relationship('Product')
 
 class SearchLog(db.Model):
@@ -141,12 +124,12 @@ class Rating(db.Model):
     comment = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-
     user = db.relationship('User', backref='ratings')
     product = db.relationship('Product', back_populates='ratings')
-    
-# User loader function must be after User model is defined
-from app import login_manager  # Import login_manager from the app directly
+
+# User loader function
+from app import login_manager
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+

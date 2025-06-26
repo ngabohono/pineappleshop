@@ -64,46 +64,18 @@ def dashboard():
         total_orders = Order.query.filter_by(user_id=current_user.id).count()
         return render_template('dashboard.html', total_orders=total_orders)
     else:
-        # For both admin and seller roles
-        if current_user.role == 'admin':
-            # Admins see all products and stats
-            total_users = User.query.count()
-            total_products = Product.query.count()
-            total_orders = Order.query.count()
-            total_categories = Category.query.count()
-            my_products = Product.query.all()  # Admin sees all products
-        else:
-            # Non-admin users (sellers) only see their own products
-            total_users = 1  # Just themselves
-            total_products = Product.query.filter_by(user_id=current_user.id).count()
-            # Count orders that contain their products
-            my_product_ids = db.session.query(Product.id).filter_by(user_id=current_user.id).all()
-            my_product_ids = [pid[0] for pid in my_product_ids]
-            
-            if my_product_ids:
-                total_orders = db.session.query(Order.id).join(OrderItem).filter(
-                    OrderItem.product_id.in_(my_product_ids)
-                ).distinct().count()
-            else:
-                total_orders = 0
-            
-            total_categories = db.session.query(Category.id).join(Product).filter(
-                Product.user_id == current_user.id
-            ).distinct().count()
-            
-            my_products = Product.query.filter_by(user_id=current_user.id).all()
-        
+        total_users = User.query.count()
+        total_products = Product.query.count()
+        total_orders = Order.query.count()
+        total_categories = Category.query.count()
         my_total_orders = Order.query.filter_by(user_id=current_user.id).count()
-        
         return render_template(
             'admin_dashboard.html',
             total_users=total_users,
             total_products=total_products,
             total_orders=total_orders,
             total_categories=total_categories,
-            my_total_orders=my_total_orders,
-            my_products=my_products,  # Add this to pass products to template
-            is_admin=(current_user.role == 'admin')  # Add this flag
+            my_total_orders= my_total_orders,
         )
 
 @main.route('/shop/category/<category_name>')
@@ -224,6 +196,27 @@ def cart():
 
     return render_template('cart.html', cart_items=valid_cart_items, total=total)
 
+
+# @main.route('/add-to-cart/<int:product_id>')
+# @login_required
+# def add_to_cart(product_id):
+#     product = Product.query.get_or_404(product_id)
+    
+#     cart_item = CartItem.query.filter_by(
+#         user_id=current_user.id, 
+#         product_id=product_id
+#     ).first()
+    
+#     if cart_item:
+#         cart_item.quantity += 1
+#     else:
+#         cart_item = CartItem(user_id=current_user.id, product_id=product_id)
+#         db.session.add(cart_item)
+    
+#     db.session.commit()
+#     flash('Item added to cart!', 'success')
+#     return redirect(url_for('main.product', product_id=product_id))
+
 @main.route('/add-to-cart/<int:product_id>')
 @login_required
 def add_to_cart(product_id):
@@ -297,26 +290,33 @@ def delete_category(id):
     return redirect(url_for('main.categories'))
 
 
-# Update the index route to show only user's products (unless admin)
+#save/edit/delete product
 @main.route('/all-products')
-@login_required
 def index():
-    if current_user.role == 'admin':
-        # Admins can see all products
-        products = Product.query.all()
-    else:
-        # Regular users see only their own products
-        products = Product.query.filter_by(user_id=current_user.id).all()
-    
-    
+    products = Product.query.all()
     # for product in products:
     #     ratings = product.ratings.all()
     #     product.average_rating = round(sum(r.stars for r in ratings), 1) if ratings else 0
-    
+
     return render_template('admin/index.html', products=products)
 
+# @main.route('/add', methods=['GET', 'POST'])
+# def add_product():
+#     if request.method == 'POST':
+#         product = Product(
+#             name=request.form['name'],
+#             price=request.form['price'],
+#             description=request.form['description'],
+#             image=request.form['image'],
+#             stock=request.form['stock']
+#         )
+#         db.session.add(product)
+#         db.session.commit()
+#         return redirect(url_for('main.index'))
+#     return render_template('admin/add_product.html')
 
-# Update the add_product route to save the user_id
+
+
 @main.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_product():
@@ -331,25 +331,31 @@ def add_product():
         image_file = request.files['image']
         category_id = request.form.get('category_id')
         
+
         filename = None
+        # if image_file and image_file.filename:
+        #     filename = secure_filename(image_file.filename)
+        #     image_path = os.path.join(current_app.root_path, 'static/images', filename)
+        #     image_file.save(image_path)
         if image_file and image_file.filename:
             original_filename = secure_filename(image_file.filename)
             timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+            # Split name and extension
             name_part, ext = os.path.splitext(original_filename)
             filename = f"{name_part}_{timestamp}{ext}"
             image_path = os.path.join(current_app.root_path, 'static/images', filename)
             image_file.save(image_path)
+
 
         new_product = Product(
             name=name,
             price=price,
             description=description,
             stock=stock,
-            image=filename,
+            image=filename,  # store filename in DB
             slug=slug,
-            brief=brief,
-            category_id=int(category_id) if category_id else None,
-            user_id=current_user.id  # Add this line to save the owner
+            brief = brief,
+            category_id=int(category_id) if category_id else None
         )
         db.session.add(new_product)
         db.session.commit()
@@ -360,17 +366,9 @@ def add_product():
     return render_template('admin/add_product.html', categories=categories)
 
 
-# Update the edit_product route with authorization
 @main.route('/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
 def edit_product(id):
     product = Product.query.get_or_404(id)
-    
-    # Check if user is authorized to edit this product
-    if current_user.role != 'admin' and product.user_id != current_user.id:
-        flash('You are not authorized to edit this product.', 'danger')
-        return redirect(url_for('main.index'))
-    
     categories = Category.query.all()
     if request.method == 'POST':
         product.name = request.form['name']
@@ -381,35 +379,70 @@ def edit_product(id):
         product.stock = request.form['stock']
         
         category_id = request.form.get('category_id')
-        product.category_id = int(category_id) if category_id else None
+        product.category_id = int(category_id) if category_id else None  # Handle nullable if needed
 
         db.session.commit()
-        flash('Product updated successfully!', 'success')
         return redirect(url_for('main.index'))
     return render_template('admin/edit_product.html', product=product, categories=categories)
 
-
-# Update the delete_product route with authorization
 @main.route('/delete/<int:id>')
-@login_required
 def delete_product(id):
     product = Product.query.get_or_404(id)
-    
-    # Check if user is authorized to delete this product
-    if current_user.role != 'admin' and product.user_id != current_user.id:
-        flash('You are not authorized to delete this product.', 'danger')
-        return redirect(url_for('main.index'))
-    
     db.session.delete(product)
     db.session.commit()
-    flash('Product deleted successfully!', 'success')
     return redirect(url_for('main.index'))
-
 
 
 @main.route('/product-details/<product_id>')
 def product_details(product_id):    
     return redirect(url_for('main.product', product_id=product_id))
+
+
+# @main.route('/place_order', methods=['POST'])
+# @login_required
+# def place_order():
+#     name = request.form.get('name')
+#     address = request.form.get('address')
+
+#     if not name or not address:
+#         flash("Please fill out all fields.")
+#         return redirect(url_for('main.checkout'))
+
+#     # Fetch cart items for current user
+#     cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+#     if not cart_items:
+#         flash("Your cart is empty.")
+#         return redirect(url_for('main.home'))
+
+#     # Create new order
+#     new_order = Order(customer_name=name, address=address, total_price=0)
+#     db.session.add(new_order)
+#     db.session.flush()  # Get the order ID before committing
+
+#     total = 0
+#     for item in cart_items:
+#         product = item.product
+#         if product:
+#             subtotal = product.price * item.quantity
+#             total += subtotal
+#             order_item = OrderItem(
+#                 order_id=new_order.id,
+#                 product_id=product.id,
+#                 quantity=item.quantity,
+#                 price=product.price
+#             )
+#             db.session.add(order_item)
+
+#     new_order.total_price = total
+#     db.session.commit()
+
+#     # Clear the cart
+#     CartItem.query.filter_by(user_id=current_user.id).delete()
+#     db.session.commit()
+
+#     flash("Order placed successfully!")
+#     return redirect(url_for('main.home'))
+
 
 @main.route('/place_order', methods=['POST'])
 @login_required
@@ -504,47 +537,11 @@ def clearcart():
 @main.route('/orders')
 @login_required
 def view_orders():
-    if current_user.role == 'admin':
-        # Admins can see all orders
-        orders = Order.query.order_by(Order.created_at.desc()).all()
-        page_title = "All Orders"
-        
-    else:
-        # Non-admin users (sellers) only see orders containing their products
-        # First, get all product IDs owned by the current user
-        user_product_ids = db.session.query(Product.id).filter_by(user_id=current_user.id).all()
-        user_product_ids = [pid[0] for pid in user_product_ids]
-        
-        if user_product_ids:
-            # Get orders that contain at least one of the user's products
-            orders = Order.query.join(OrderItem).filter(
-                OrderItem.product_id.in_(user_product_ids)
-            ).distinct().order_by(Order.created_at.desc()).all()
-            
-            # For each order, we might want to highlight which items belong to this seller
-            for order in orders:
-                # Add a custom attribute to track seller's items in this order
-                seller_items = [item for item in order.items if item.product_id in user_product_ids]
-                order.seller_items = seller_items
-                order.seller_revenue = sum(item.price * item.quantity for item in seller_items)
-        else:
-            # User has no products, so no orders to show
-            orders = []
-            
-        page_title = "Orders for My Products"
-    
-    # Calculate some statistics
-    total_orders = len(orders)
-    total_revenue = sum(order.total_price for order in orders) if current_user.role == 'admin' else \
-                   sum(getattr(order, 'seller_revenue', 0) for order in orders)
-    
-    return render_template('orders.html', 
-                         orders=orders, 
-                         page_title=page_title,
-                         total_orders=total_orders,
-                         total_revenue=total_revenue,
-                         is_admin=(current_user.role == 'admin'))
+    # If you're building for admin, fetch all orders
+    orders = Order.query.order_by(Order.created_at.desc()).all()
 
+    # If it's for a regular user, filter orders by user (if your model links user)
+    return render_template('orders.html', orders=orders)
 
 @main.route('/user/orders')
 @login_required
