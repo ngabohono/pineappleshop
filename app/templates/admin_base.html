@@ -58,9 +58,13 @@
                 <li><a href="{{ url_for('main.dashboard') }}" class="text-blue-600 hover:underline">Dashboard</a></li>
                 <li><a href="{{ url_for('main.view_user_orders') }}" class="text-blue-600 hover:underline">My Orders</a></li>
 
+<<<<<<< HEAD
 
 
             {% if current_user.role == 'customer' %}
+=======
+            {% if current_user.role == 'customer' and current_user.email != 'jcturisangait1996@gmail.com' and current_user.email != 'ngabohonorek@gmail.com' %}
+>>>>>>> dea9c98ccc4156ecaff25de8bd769fe2b886a50c
                 <li><a href="{{ url_for('main.cart') }}" class="text-blue-600 hover:underline">Cart</a></li>
             {% else %}
                 <li><a href="{{ url_for('main.index') }}" class="text-blue-600 hover:underline">Products</a></li>
